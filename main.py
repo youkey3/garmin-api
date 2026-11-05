@@ -26,7 +26,6 @@ def get_recent_activities(limit: int = 5):
     try:
         client = get_garmin_client()
         
-        # 直近のアクティビティを取得
         activities = client.get_activities(0, limit)
         
         result = []
@@ -39,7 +38,7 @@ def get_recent_activities(limit: int = 5):
                 "duration_min": round(act.get("duration", 0) / 60, 1),
                 "averageHeartRate": act.get("averageHR"),
                 "maxHeartRate": act.get("maxHR"),
-                "averageRunCadence": act.get("averageRunCadence"),  # 平均ケイデンスを追加
+                "averageRunCadence": act.get("averageRunCadence"),
                 "calories": act.get("calories")
             })
         return {"status": "success", "data": result}
@@ -54,19 +53,13 @@ def get_activity_details(activity_id: str):
     try:
         client = get_garmin_client()
         
-        # 1kmごとのラップ・スプリットデータ（区間ごとのケイデンス等が含まれます）
+        # 1kmごとのラップ・スプリットデータ（ここに区間ごとのラップタイムやケイデンスが含まれます）
         splits = client.get_activity_splits(activity_id)
         
-        # 詳細データから容量を圧迫する重いGPS軌跡データだけを削除し、ケイデンスや心拍のデータを保持
-        details = client.get_activity_details(activity_id)
-        if isinstance(details, dict):
-            for key in ["geoPolylineDTOList", "metricDescriptors"]:
-                details.pop(key, None)
-        
+        # 時系列の重いデータを完全に外し、安全なラップ情報のみを返す
         return {
             "status": "success",
-            "splits": splits,
-            "details_summary": details
+            "splits": splits
         }
         
     except Exception as e:
