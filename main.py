@@ -51,8 +51,19 @@ def get_activity_details(activity_id: str):
     global _garmin_client
     try:
         client = get_garmin_client()
+        
+        # 1kmごとのラップ・スプリットデータを取得
         splits = client.get_activity_splits(activity_id)
-        return {"status": "success", "data": splits}
+        
+        # 詳細なセンサーデータや時系列データを取得
+        details = client.get_activity_details(activity_id)
+        
+        return {
+            "status": "success",
+            "splits": splits,
+            "details": details
+        }
+        
     except Exception as e:
         _garmin_client = None
         raise HTTPException(status_code=500, detail=str(e))
