@@ -55,13 +55,16 @@ def get_activity_details(activity_id: str):
         # 1kmごとのラップ・スプリットデータを取得
         splits = client.get_activity_splits(activity_id)
         
-        # 詳細なセンサーデータや時系列データを取得
+        # 詳細データを取得し、容量の大きい項目（GPS軌跡など）を削除して軽量化
         details = client.get_activity_details(activity_id)
+        if isinstance(details, dict):
+            for key in ["geoPolylineDTOList", "metricDescriptors", "activityDetailMetrics"]:
+                details.pop(key, None)
         
         return {
             "status": "success",
             "splits": splits,
-            "details": details
+            "details_summary": details
         }
         
     except Exception as e:
