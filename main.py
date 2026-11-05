@@ -38,6 +38,8 @@ def get_recent_activities(limit: int = 5):
                 "distance_km": round(act.get("distance", 0) / 1000, 2),
                 "duration_min": round(act.get("duration", 0) / 60, 1),
                 "averageHeartRate": act.get("averageHR"),
+                "maxHeartRate": act.get("maxHR"),
+                "averageRunCadence": act.get("averageRunCadence"),  # 平均ケイデンスを追加
                 "calories": act.get("calories")
             })
         return {"status": "success", "data": result}
@@ -52,13 +54,13 @@ def get_activity_details(activity_id: str):
     try:
         client = get_garmin_client()
         
-        # 1kmごとのラップ・スプリットデータを取得
+        # 1kmごとのラップ・スプリットデータ（区間ごとのケイデンス等が含まれます）
         splits = client.get_activity_splits(activity_id)
         
-        # 詳細データを取得し、容量の大きい項目（GPS軌跡など）を削除して軽量化
+        # 詳細データから容量を圧迫する重いGPS軌跡データだけを削除し、ケイデンスや心拍のデータを保持
         details = client.get_activity_details(activity_id)
         if isinstance(details, dict):
-            for key in ["geoPolylineDTOList", "metricDescriptors", "activityDetailMetrics"]:
+            for key in ["geoPolylineDTOList", "metricDescriptors"]:
                 details.pop(key, None)
         
         return {
